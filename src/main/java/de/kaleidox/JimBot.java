@@ -64,7 +64,8 @@ public final class JimBot {
                             "If the ID is invalid, every channel is accepted.");
 
             CMD.useCustomPrefixes(PROP.getProperty("bot.prefix"));
-            CMD.useCustomPrefixes(PROP.getProperty("bot.commandchannel"));
+            CMD.useCommandChannel(PROP.getProperty("bot.commandchannel"));
+            CMD.useBotMentionAsPrefix = true;
 
             API.getThreadPool()
                     .getScheduler()
