@@ -103,7 +103,7 @@ public enum JimCommands {
                 .setName(args[1]);
 
         if (args.length >= 4) {
-            Color color = new Color(Integer.decode("0x"+args[3]));
+            Color color = new Color(Integer.decode("0x" + args[3]));
 
             roleBuilder.setColor(color);
         }
