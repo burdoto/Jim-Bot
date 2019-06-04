@@ -23,16 +23,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.logging.log4j.Logger;
 import org.javacord.api.entity.permission.Role;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.event.server.role.UserRoleRemoveEvent;
 import org.javacord.api.listener.server.role.UserRoleRemoveListener;
+import org.javacord.core.util.logging.LoggerUtil;
 
 import static java.time.Instant.now;
 
 public enum AssignmentManager implements UserRoleRemoveListener, Initializable, Closeable {
     INSTANCE;
 
+    private static final Logger log = LoggerUtil.getLogger(AssignmentManager.class);
     private static final File FILE = FileProvider.getFile("data/timed.json");
 
     private Map<String, List<TemporaryAssignment>> assignments = new ConcurrentHashMap<>();
@@ -56,9 +59,15 @@ public enum AssignmentManager implements UserRoleRemoveListener, Initializable, 
                     assignments.compute(sId + ":" + uId, (k, v) -> {
                         if (v == null) v = new ArrayList<>();
                         TemporaryAssignment assignment = new TemporaryAssignment(assignmentNode);
-                        if (assignment.isOutdated())
+                        if (assignment.isOutdated()) {
                             assignment.remove(TemporaryAssignment.RemovalStatus.OUTDATED);
-                        else v.add(assignment);
+                            log.debug("Skipped loading assignment of role [" + assignment.getRoleid() + "] for user " +
+                                    "[" + assignment.getUserId() + "]: The assignment is outdated.");
+                        } else {
+                            v.add(assignment);
+                            log.debug("Loaded assignment of role [" + assignment.getRoleid() + "] " +
+                                    "for user [" + assignment.getUserId() + "]");
+                        }
                         return v;
                     });
                 }
@@ -174,7 +183,7 @@ public enum AssignmentManager implements UserRoleRemoveListener, Initializable, 
             });
 
         if (removalPairs.size() > 0)
-            JimBot.LOG.info("Cleaned up [" + removalPairs.size() + "] old assignments!");
+            log.info("Cleaned up [" + removalPairs.size() + "] old assignments!");
     }
 
     public static long extractTime(String timeString) throws ParseException {
@@ -191,40 +200,40 @@ public enum AssignmentManager implements UserRoleRemoveListener, Initializable, 
                 c += Integer.parseInt(String.valueOf(p));
             } else //noinspection StatementWithEmptyBody
                 if (Character.isWhitespace(p)) {
-                // skip character
-            } else {
-                switch (p) {
-                    case 'w':
-                        if (weeks != 0)
-                            throw new ParseException("Illegal duplication: WEEKS field [" + timeString + "]", i);
-                        weeks = c;
-                        break;
-                    case 'd':
-                        if (days != 0)
-                            throw new ParseException("Illegal duplication: DAYS field [" + timeString + "]", i);
-                        days = c;
-                        break;
-                    case 'h':
-                        if (hours != 0)
-                            throw new ParseException("Illegal duplication: HOURS field [" + timeString + "]", i);
-                        hours = c;
-                        break;
-                    case 'm':
-                        if (minutes != 0)
-                            throw new ParseException("Illegal duplication: MINUTES field [" + timeString + "]", i);
-                        minutes = c;
-                        break;
-                    case 's':
-                        if (seconds != 0)
-                            throw new ParseException("Illegal duplication: SECONDS field [" + timeString + "]", i);
-                        seconds = c;
-                        break;
-                    default:
-                        throw new ParseException("Unknown identifier: [" + p + "]", i);
-                }
+                    // skip character
+                } else {
+                    switch (p) {
+                        case 'w':
+                            if (weeks != 0)
+                                throw new ParseException("Illegal duplication: WEEKS field [" + timeString + "]", i);
+                            weeks = c;
+                            break;
+                        case 'd':
+                            if (days != 0)
+                                throw new ParseException("Illegal duplication: DAYS field [" + timeString + "]", i);
+                            days = c;
+                            break;
+                        case 'h':
+                            if (hours != 0)
+                                throw new ParseException("Illegal duplication: HOURS field [" + timeString + "]", i);
+                            hours = c;
+                            break;
+                        case 'm':
+                            if (minutes != 0)
+                                throw new ParseException("Illegal duplication: MINUTES field [" + timeString + "]", i);
+                            minutes = c;
+                            break;
+                        case 's':
+                            if (seconds != 0)
+                                throw new ParseException("Illegal duplication: SECONDS field [" + timeString + "]", i);
+                            seconds = c;
+                            break;
+                        default:
+                            throw new ParseException("Unknown identifier: [" + p + "]", i);
+                    }
 
-                c = 0;
-            }
+                    c = 0;
+                }
         }
 
         if (c != 0 && minutes == 0)

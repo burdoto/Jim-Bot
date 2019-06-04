@@ -44,6 +44,10 @@ public class TemporaryAssignment {
         this.temporaryRole = temporaryRole;
     }
 
+    public long getUserId() {
+        return userId;
+    }
+
     public boolean isOutdated() {
         Role role = JimBot.API.getRoleById(roleid).orElse(null);
 
