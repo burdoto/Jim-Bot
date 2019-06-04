@@ -189,7 +189,8 @@ public enum AssignmentManager implements UserRoleRemoveListener, Initializable, 
             if (Character.isDigit(p)) {
                 c = c * 10;
                 c += Integer.parseInt(String.valueOf(p));
-            } else if (Character.isWhitespace(p)) {
+            } else //noinspection StatementWithEmptyBody
+                if (Character.isWhitespace(p)) {
                 // skip character
             } else {
                 switch (p) {
