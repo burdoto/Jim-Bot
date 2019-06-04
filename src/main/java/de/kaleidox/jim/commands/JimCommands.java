@@ -89,7 +89,7 @@ public enum JimCommands {
 
     @Command(
             description = "Create a role and temporarily assign it to a user",
-            usage = "tempRole <User> <Rolename> <Time> [Role hex code]",
+            usage = "assignNew <User> <Rolename> <Time> [Role hex code]",
             enablePrivateChat = false,
             ordinal = 0,
             requiredUserMentions = 1,
