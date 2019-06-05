@@ -94,35 +94,17 @@ public class TemporaryAssignment {
     public synchronized void remove(@MagicConstant(valuesFromClass = RemovalStatus.class) int status) {
         if (cleanupable) return;
 
+        Role role = JimBot.API.getRoleById(roleid).orElse(null);
+
+        if (role == null) {
+            log.error("Unable to remove assignment from user [" + userId + "]: " +
+                    "Role [" + roleid + "] was not found");
+            return;
+        }
+
         switch (status) {
             case RemovalStatus.EXPIRED:
                 log.info("Assignment of role [" + roleid + "] for user [" + userId + "] expired!");
-
-                Role role = JimBot.API.getRoleById(roleid).orElse(null);
-
-                if (role == null) {
-                    log.error("Unable to remove assignment from user [" + userId + "]: " +
-                            "Role [" + roleid + "] was not found");
-                    return;
-                }
-
-                JimBot.API.getUserById(userId)
-                        .thenCompose(user -> {
-                            Server server = role.getServer();
-
-                            server.removeRoleFromUser(user, role)
-                                    .join();
-
-                            if (temporaryRole && server.getMembers()
-                                    .stream()
-                                    .flatMap(usr -> server.getRoles(usr).stream())
-                                    .noneMatch(role::equals)) {
-                                log.info("Role [" + roleid + "] was a temporary role and was deleted, " +
-                                        "since there was no user left with that role");
-                                return role.delete();
-                            } else return CompletableFuture.completedFuture(null);
-                        })
-                        .join();
 
                 break;
             case RemovalStatus.CANCELLED:
@@ -137,6 +119,26 @@ public class TemporaryAssignment {
 
                 break;
         }
+
+        JimBot.API.getUserById(userId)
+                .thenCompose(user -> {
+                    Server server = role.getServer();
+
+                    server.removeRoleFromUser(user, role)
+                            .join();
+
+                    if (temporaryRole && server.getMembers()
+                            .stream()
+                            .flatMap(usr -> server.getRoles(usr).stream())
+                            .noneMatch(role::equals)) {
+                        log.info("Role [" + roleid + "] was a temporary role and was deleted, " +
+                                "since there was no user left with that role");
+                        return role.delete();
+                    }
+
+                    return CompletableFuture.completedFuture(null);
+                })
+                .join();
 
         cleanupable = true;
     }
