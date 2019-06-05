@@ -44,10 +44,6 @@ public class TemporaryAssignment {
         this.temporaryRole = temporaryRole;
     }
 
-    public long getUserId() {
-        return userId;
-    }
-
     public boolean isOutdated() {
         Role role = JimBot.API.getRoleById(roleid).orElse(null);
 
@@ -62,6 +58,10 @@ public class TemporaryAssignment {
                             .noneMatch(role::equals);
                 })
                 .join();
+    }
+
+    public long getUserId() {
+        return userId;
     }
 
     public Instant getRemoveAt() {
