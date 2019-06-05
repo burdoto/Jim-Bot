@@ -87,11 +87,7 @@ public class TemporaryAssignment {
 
             this.scheduledRemoval = JimBot.API.getThreadPool()
                     .getScheduler()
-                    .schedule(() -> {
-                        remove(RemovalStatus.EXPIRED);
-
-                        cleanupable = true;
-                    }, until, TimeUnit.SECONDS);
+                    .schedule(() -> remove(RemovalStatus.EXPIRED), until, TimeUnit.SECONDS);
         }
     }
 
