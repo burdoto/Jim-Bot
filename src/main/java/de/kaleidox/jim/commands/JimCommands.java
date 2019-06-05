@@ -39,6 +39,7 @@ public enum JimCommands {
                 .orElseGet(() -> server.getRoles()
                         .stream()
                         .max(Comparator.comparingInt(role -> FuzzySearch.ratio(args[1], role.getName())))
+                        .filter(role -> FuzzySearch.ratio(args[1], role.getName()) > 70)
                         .orElse(null));
 
         if (targetRole == null) {
